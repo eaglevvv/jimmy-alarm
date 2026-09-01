@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b0d12" />
-    <title>吉米鬧鐘</title>
+    <title>Jimmy's Alarm</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -12,12 +12,13 @@
       <div class="fixed-panel">
       <header class="hero">
         <div>
-          <h1>吉米鬧鐘</h1>
+          <h1>Jimmy's Alarm</h1>
         </div>
         <div class="now" aria-live="polite">
           <time id="clock">--:--:--</time>
         </div>
       </header>
+
 
       <section class="controls" aria-label="新增鬧鐘">
           <button class="primary" id="add-alarm" type="button">＋ 新增鬧鐘</button>
@@ -27,6 +28,7 @@
         </div>
       </section>
 
+
       <section class="sound-settings" aria-label="鈴聲設定">
         <div>
           <p class="setting-title">鈴聲庫</p>
@@ -34,72 +36,3 @@
         </div>
         <div class="sound-actions">
           <label class="quiet file-button" for="sound-file">匯入音訊</label>
-          <input id="sound-file" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" hidden />
-          <select class="sound-select library-select" id="sound-library" aria-label="選擇要管理的鈴聲"></select>
-          <button class="quiet" id="preview-sound" type="button">試聽</button>
-          <button class="text-button" id="remove-sound" type="button">移除</button>
-        </div>
-      </section>
-      </div>
-
-      <section class="alarm-list" id="alarm-list" aria-label="鬧鐘清單"></section>
-      <template id="alarm-template">
-        <article class="alarm-card">
-          <label class="switch-label" title="啟用或關閉">
-            <input class="enabled" type="checkbox" checked />
-            <span class="switch"></span>
-          </label>
-          <div class="time-wrap">
-            <div class="time-picker">
-              <output class="alarm-time-display">07:00</output>
-              <button class="time-picker-button" type="button" title="修改鬧鐘時間" aria-label="修改鬧鐘時間">◷</button>
-              <span class="alarm-countdown" aria-live="polite"></span>
-            </div>
-            <input class="alarm-label" type="text" maxlength="30" placeholder="鬧鐘名稱（選填）" aria-label="鬧鐘名稱" />
-          </div>
-          <div class="card-actions">
-            <label class="volume-control" title="調整鬧鐘音量">
-              <span aria-hidden="true">◖))</span>
-              <input class="alarm-volume" type="range" min="0" max="100" value="80" aria-label="鬧鐘音量" />
-            </label>
-            <select class="sound-select alarm-sound" aria-label="選擇鬧鐘鈴聲"></select>
-            <button class="icon-button delete" type="button" title="刪除鬧鐘">×</button>
-          </div>
-        </article>
-      </template>
-      <p class="empty-state" id="empty-state">尚未設定鬧鐘。按下「新增鬧鐘」開始吧。</p>
-    </main>
-
-    <dialog id="ring-dialog">
-      <div class="ringing-orb">◖))</div>
-      <p class="eyebrow">ALARM</p>
-      <h2 id="ring-title">鬧鐘時間到了</h2>
-      <p id="ring-time"></p>
-      <button class="primary stop" id="stop-alarm" type="button">停止鈴聲</button>
-    </dialog>
-    <dialog id="time-dialog" aria-labelledby="time-dialog-title">
-      <form method="dialog" class="time-dialog-content">
-        <p class="eyebrow">TIME</p>
-        <h2 id="time-dialog-title">設定鬧鐘時間</h2>
-        <div class="time-selects">
-          <div class="time-select-control">
-            <button class="time-select-trigger" id="picker-hour" type="button" aria-haspopup="listbox" aria-expanded="false">00</button>
-            <div class="time-option-menu" id="picker-hour-menu" role="listbox" aria-label="小時" hidden></div>
-          </div>
-          <span>:</span>
-          <div class="time-select-control">
-            <button class="time-select-trigger" id="picker-minute" type="button" aria-haspopup="listbox" aria-expanded="false">00</button>
-            <div class="time-option-menu" id="picker-minute-menu" role="listbox" aria-label="分鐘" hidden></div>
-          </div>
-        </div>
-        <div class="dialog-actions">
-          <button class="quiet" id="cancel-time" value="cancel" type="submit">取消</button>
-          <button class="primary" id="save-time" value="default" type="submit">確定</button>
-        </div>
-      </form>
-    </dialog>
-    <div id="toast" role="status" aria-live="polite"></div>
-    <script src="app.js"></script>
-  </body>
-</html>
-

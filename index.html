@@ -48,11 +48,11 @@
             <span class="switch"></span>
           </label>
           <div class="time-wrap">
-            <input class="alarm-time" type="time" value="07:00" aria-label="鬧鐘時間" />
+            <div class="time-picker">
+              <output class="alarm-time-display">07:00</output>
+              <button class="time-picker-button" type="button" title="修改鬧鐘時間" aria-label="修改鬧鐘時間">◷</button>
+            </div>
             <input class="alarm-label" type="text" maxlength="30" placeholder="鬧鐘名稱（選填）" aria-label="鬧鐘名稱" />
-          </div>
-          <div class="days" aria-label="重複日期">
-            <label><input type="checkbox" value="1" />一</label><label><input type="checkbox" value="2" />二</label><label><input type="checkbox" value="3" />三</label><label><input type="checkbox" value="4" />四</label><label><input type="checkbox" value="5" />五</label><label><input type="checkbox" value="6" />六</label><label><input type="checkbox" value="0" />日</label>
           </div>
           <div class="card-actions">
             <label class="volume-control" title="調整鬧鐘音量">
@@ -73,6 +73,19 @@
       <h2 id="ring-title">鬧鐘時間到了</h2>
       <p id="ring-time"></p>
       <button class="primary stop" id="stop-alarm" type="button">停止鈴聲</button>
+    </dialog>
+    <dialog id="time-dialog" aria-labelledby="time-dialog-title">
+      <form method="dialog" class="time-dialog-content">
+        <p class="eyebrow">TIME</p>
+        <h2 id="time-dialog-title">設定鬧鐘時間</h2>
+        <div class="time-selects">
+          <select id="picker-hour" aria-label="小時"></select><span>:</span><select id="picker-minute" aria-label="分鐘"></select>
+        </div>
+        <div class="dialog-actions">
+          <button class="quiet" id="cancel-time" value="cancel" type="submit">取消</button>
+          <button class="primary" id="save-time" value="default" type="submit">確定</button>
+        </div>
+      </form>
     </dialog>
     <div id="toast" role="status" aria-live="polite"></div>
     <script src="app.js"></script>

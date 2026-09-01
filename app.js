@@ -9,7 +9,9 @@ const makeAlarm = () => ({ id: crypto.randomUUID(), time: '00:00', label: '', en
 const escapeHtml = (value) => { const node = document.createElement('span'); node.textContent = value; return node.innerHTML; };
 const timeOptions = (limit) => Array.from({ length: limit }, (_, value) => { const time = String(value).padStart(2, '0'); return `<button type="button" role="option" data-time="${time}">${time}</button>`; }).join('');
 function formatDate(d) { return new Intl.DateTimeFormat('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }).format(d); }
-function updateClock() { const now = new Date(); document.querySelector('#clock').textContent = now.toLocaleTimeString('zh-TW', { hour12: false }); document.querySelector('#date').textContent = formatDate(now); checkAlarms(now); }
+function formatCountdown(time, now) { const [hour, minute] = time.split(':').map(Number); const next = new Date(now); next.setHours(hour, minute, 0, 0); if (next <= now) next.setDate(next.getDate() + 1); const seconds = Math.floor((next - now) / 1000); return `倒數 ${String(Math.floor(seconds / 3600)).padStart(2, '0')}:${String(Math.floor(seconds % 3600 / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`; }
+function updateCountdowns(now) { document.querySelectorAll('.alarm-countdown[data-alarm-id]').forEach(element => { const alarm = alarms.find(item => item.id === element.dataset.alarmId); element.textContent = alarm?.enabled ? formatCountdown(alarm.time, now) : '已關閉'; }); }
+function updateClock() { const now = new Date(); document.querySelector('#clock').textContent = now.toLocaleTimeString('zh-TW', { hour12: false }); document.querySelector('#date').textContent = formatDate(now); updateCountdowns(now); checkAlarms(now); }
 function showToast(message) { const toast = document.querySelector('#toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove('show'), 2400); }
 
 function soundDatabase() { return new Promise((resolve, reject) => { const request = indexedDB.open('night-alarm-sounds', 1); request.onupgradeneeded = () => request.result.createObjectStore('sounds'); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); }); }
@@ -33,8 +35,9 @@ function updateSoundUi() { librarySelect.innerHTML = soundOptions(librarySelect.
 function render() {
   sortAlarms(); list.innerHTML = '';
   alarms.forEach((alarm) => {
-    const node = template.content.cloneNode(true), card = node.querySelector('.alarm-card'), enabled = node.querySelector('.enabled'), timeButton = node.querySelector('.time-picker-button'), timeDisplay = node.querySelector('.alarm-time-display'), label = node.querySelector('.alarm-label'), volume = node.querySelector('.alarm-volume'), sound = node.querySelector('.alarm-sound');
+    const node = template.content.cloneNode(true), card = node.querySelector('.alarm-card'), enabled = node.querySelector('.enabled'), timeButton = node.querySelector('.time-picker-button'), timeDisplay = node.querySelector('.alarm-time-display'), countdown = node.querySelector('.alarm-countdown'), label = node.querySelector('.alarm-label'), volume = node.querySelector('.alarm-volume'), sound = node.querySelector('.alarm-sound');
     enabled.checked = alarm.enabled; timeDisplay.value = alarm.time; label.value = alarm.label; volume.value = alarm.volume ?? 80; sound.innerHTML = soundOptions(alarm.soundId || 'builtin');
+    countdown.dataset.alarmId = alarm.id;
     enabled.addEventListener('change', () => { alarm.enabled = enabled.checked; save(); render(); });
     timeButton.addEventListener('click', () => { editingAlarm = alarm; [selectedHour, selectedMinute] = alarm.time.split(':'); hourSelect.textContent = selectedHour; minuteSelect.textContent = selectedMinute; timeDialog.showModal(); });
     label.addEventListener('input', () => { alarm.label = label.value; save(); }); volume.addEventListener('input', () => { alarm.volume = Number(volume.value); save(); }); sound.addEventListener('change', () => { alarm.soundId = sound.value; save(); });

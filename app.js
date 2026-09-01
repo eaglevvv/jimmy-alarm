@@ -5,7 +5,7 @@ let audioContext, alarmOscillator, alarmTimer, lastMinute = '', playingAudio, pl
 const save = () => localStorage.setItem('night-alarm-list', JSON.stringify(alarms));
 const saveLibrary = () => localStorage.setItem('night-alarm-sound-library', JSON.stringify(soundLibrary));
 const sortAlarms = () => alarms.sort((a, b) => a.time.localeCompare(b.time));
-const makeAlarm = () => ({ id: crypto.randomUUID(), time: '00:00', label: '', enabled: true, volume: 80, soundId: 'builtin' });
+const makeAlarm = () => ({ id: crypto.randomUUID(), time: '00:00', label: '', enabled: true, volume: 100, soundId: 'builtin' });
 const escapeHtml = (value) => { const node = document.createElement('span'); node.textContent = value; return node.innerHTML; };
 const timeOptions = (limit) => Array.from({ length: limit }, (_, value) => { const time = String(value).padStart(2, '0'); return `<button type="button" role="option" data-time="${time}">${time}</button>`; }).join('');
 function updatePanelSpacing() { document.documentElement.style.setProperty('--fixed-panel-height', `${fixedPanel.offsetHeight}px`); }
@@ -36,12 +36,12 @@ function updateSoundUi() { librarySelect.innerHTML = soundOptions(librarySelect.
 function render() {
   sortAlarms(); list.innerHTML = '';
   alarms.forEach((alarm) => {
-    const node = template.content.cloneNode(true), card = node.querySelector('.alarm-card'), enabled = node.querySelector('.enabled'), timeButton = node.querySelector('.time-picker-button'), timeDisplay = node.querySelector('.alarm-time-display'), countdown = node.querySelector('.alarm-countdown'), label = node.querySelector('.alarm-label'), volume = node.querySelector('.alarm-volume'), sound = node.querySelector('.alarm-sound');
-    enabled.checked = alarm.enabled; timeDisplay.value = alarm.time; label.value = alarm.label; volume.value = alarm.volume ?? 80; sound.innerHTML = soundOptions(alarm.soundId || 'builtin');
+    const node = template.content.cloneNode(true), card = node.querySelector('.alarm-card'), enabled = node.querySelector('.enabled'), timeButton = node.querySelector('.time-picker-button'), timeDisplay = node.querySelector('.alarm-time-display'), countdown = node.querySelector('.alarm-countdown'), label = node.querySelector('.alarm-label'), volume = node.querySelector('.alarm-volume'), volumeValue = node.querySelector('.volume-value'), sound = node.querySelector('.alarm-sound');
+    enabled.checked = alarm.enabled; timeDisplay.value = alarm.time; label.value = alarm.label; volume.value = alarm.volume ?? 100; volumeValue.textContent = volume.value; sound.innerHTML = soundOptions(alarm.soundId || 'builtin');
     countdown.dataset.alarmId = alarm.id;
     enabled.addEventListener('change', () => { alarm.enabled = enabled.checked; save(); render(); });
     timeButton.addEventListener('click', () => { editingAlarm = alarm; [selectedHour, selectedMinute] = alarm.time.split(':'); hourSelect.textContent = selectedHour; minuteSelect.textContent = selectedMinute; timeDialog.showModal(); });
-    label.addEventListener('input', () => { alarm.label = label.value; save(); }); volume.addEventListener('input', () => { alarm.volume = Number(volume.value); save(); }); sound.addEventListener('change', () => { alarm.soundId = sound.value; save(); });
+    label.addEventListener('input', () => { alarm.label = label.value; save(); }); volume.addEventListener('input', () => { alarm.volume = Number(volume.value); volumeValue.textContent = volume.value; save(); }); sound.addEventListener('change', () => { alarm.soundId = sound.value; save(); });
     node.querySelector('.delete').addEventListener('click', () => { alarms = alarms.filter(x => x.id !== alarm.id); save(); render(); }); list.append(node);
   });
   empty.hidden = alarms.length > 0; count.textContent = `${alarms.filter(x => x.enabled).length} 個已啟用`; updateSoundUi();

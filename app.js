@@ -1,13 +1,13 @@
-const list = document.querySelector('#alarm-list'), template = document.querySelector('#alarm-template'), empty = document.querySelector('#empty-state'), count = document.querySelector('#alarm-count'), dialog = document.querySelector('#ring-dialog'), timeDialog = document.querySelector('#time-dialog'), hourSelect = document.querySelector('#picker-hour'), minuteSelect = document.querySelector('#picker-minute'), librarySelect = document.querySelector('#sound-library');
+const list = document.querySelector('#alarm-list'), template = document.querySelector('#alarm-template'), empty = document.querySelector('#empty-state'), count = document.querySelector('#alarm-count'), dialog = document.querySelector('#ring-dialog'), timeDialog = document.querySelector('#time-dialog'), hourSelect = document.querySelector('#picker-hour'), minuteSelect = document.querySelector('#picker-minute'), hourMenu = document.querySelector('#picker-hour-menu'), minuteMenu = document.querySelector('#picker-minute-menu'), librarySelect = document.querySelector('#sound-library');
 let alarms = JSON.parse(localStorage.getItem('night-alarm-list') || '[]'), soundLibrary = JSON.parse(localStorage.getItem('night-alarm-sound-library') || '[]');
-let audioContext, alarmOscillator, alarmTimer, lastMinute = '', playingAudio, playingAudioUrl, editingAlarm;
+let audioContext, alarmOscillator, alarmTimer, lastMinute = '', playingAudio, playingAudioUrl, editingAlarm, selectedHour = '00', selectedMinute = '00';
 
 const save = () => localStorage.setItem('night-alarm-list', JSON.stringify(alarms));
 const saveLibrary = () => localStorage.setItem('night-alarm-sound-library', JSON.stringify(soundLibrary));
 const sortAlarms = () => alarms.sort((a, b) => a.time.localeCompare(b.time));
 const makeAlarm = () => ({ id: crypto.randomUUID(), time: '07:00', label: '', enabled: true, volume: 80, soundId: 'builtin' });
 const escapeHtml = (value) => { const node = document.createElement('span'); node.textContent = value; return node.innerHTML; };
-const timeOptions = (limit) => Array.from({ length: limit }, (_, value) => `<option value="${String(value).padStart(2, '0')}">${String(value).padStart(2, '0')}</option>`).join('');
+const timeOptions = (limit) => Array.from({ length: limit }, (_, value) => { const time = String(value).padStart(2, '0'); return `<button type="button" role="option" data-time="${time}">${time}</button>`; }).join('');
 function formatDate(d) { return new Intl.DateTimeFormat('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }).format(d); }
 function updateClock() { const now = new Date(); document.querySelector('#clock').textContent = now.toLocaleTimeString('zh-TW', { hour12: false }); document.querySelector('#date').textContent = formatDate(now); checkAlarms(now); }
 function showToast(message) { const toast = document.querySelector('#toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove('show'), 2400); }
@@ -36,7 +36,7 @@ function render() {
     const node = template.content.cloneNode(true), card = node.querySelector('.alarm-card'), enabled = node.querySelector('.enabled'), timeButton = node.querySelector('.time-picker-button'), timeDisplay = node.querySelector('.alarm-time-display'), label = node.querySelector('.alarm-label'), volume = node.querySelector('.alarm-volume'), sound = node.querySelector('.alarm-sound');
     enabled.checked = alarm.enabled; timeDisplay.value = alarm.time; label.value = alarm.label; volume.value = alarm.volume ?? 80; sound.innerHTML = soundOptions(alarm.soundId || 'builtin');
     enabled.addEventListener('change', () => { alarm.enabled = enabled.checked; save(); render(); });
-    timeButton.addEventListener('click', () => { editingAlarm = alarm; const [hour, minute] = alarm.time.split(':'); hourSelect.value = hour; minuteSelect.value = minute; timeDialog.showModal(); });
+    timeButton.addEventListener('click', () => { editingAlarm = alarm; [selectedHour, selectedMinute] = alarm.time.split(':'); hourSelect.textContent = selectedHour; minuteSelect.textContent = selectedMinute; timeDialog.showModal(); });
     label.addEventListener('input', () => { alarm.label = label.value; save(); }); volume.addEventListener('input', () => { alarm.volume = Number(volume.value); save(); }); sound.addEventListener('change', () => { alarm.soundId = sound.value; save(); });
     node.querySelector('.delete').addEventListener('click', () => { alarms = alarms.filter(x => x.id !== alarm.id); save(); render(); }); list.append(node);
   });
@@ -63,8 +63,14 @@ librarySelect.addEventListener('change', updateSoundUi);
 document.querySelector('#preview-sound').addEventListener('click', () => { playSound(80, librarySelect.value); setTimeout(stopSound, 6000); });
 document.querySelector('#remove-sound').addEventListener('click', async () => { const id = librarySelect.value; if (id === 'builtin') return; try { await deleteSound(id); soundLibrary = soundLibrary.filter(sound => sound.id !== id); alarms.forEach(alarm => { if (alarm.soundId === id) alarm.soundId = 'builtin'; }); saveLibrary(); save(); librarySelect.value = 'builtin'; render(); showToast('已移除鈴聲，使用它的鬧鐘已改回內建鈴聲'); } catch { showToast('移除鈴聲時發生問題'); } });
 document.querySelector('#stop-alarm').addEventListener('click', stopSound); dialog.addEventListener('close', stopSound);
-hourSelect.innerHTML = timeOptions(24); minuteSelect.innerHTML = timeOptions(60);
-timeDialog.addEventListener('close', () => { if (timeDialog.returnValue === 'default' && editingAlarm) { editingAlarm.time = `${hourSelect.value}:${minuteSelect.value}`; sortAlarms(); save(); render(); } editingAlarm = undefined; });
+hourMenu.innerHTML = timeOptions(24); minuteMenu.innerHTML = timeOptions(60);
+function closeTimeMenus() { [hourSelect, minuteSelect].forEach(button => button.setAttribute('aria-expanded', 'false')); [hourMenu, minuteMenu].forEach(menu => { menu.hidden = true; }); }
+function toggleTimeMenu(button, menu) { const open = menu.hidden; closeTimeMenus(); menu.hidden = !open; button.setAttribute('aria-expanded', String(open)); }
+hourSelect.addEventListener('click', () => toggleTimeMenu(hourSelect, hourMenu));
+minuteSelect.addEventListener('click', () => toggleTimeMenu(minuteSelect, minuteMenu));
+hourMenu.addEventListener('click', event => { const option = event.target.closest('[data-time]'); if (!option) return; selectedHour = option.dataset.time; hourSelect.textContent = selectedHour; closeTimeMenus(); });
+minuteMenu.addEventListener('click', event => { const option = event.target.closest('[data-time]'); if (!option) return; selectedMinute = option.dataset.time; minuteSelect.textContent = selectedMinute; closeTimeMenus(); });
+timeDialog.addEventListener('close', () => { closeTimeMenus(); if (timeDialog.returnValue === 'default' && editingAlarm) { editingAlarm.time = `${selectedHour}:${selectedMinute}`; sortAlarms(); save(); render(); } editingAlarm = undefined; });
 alarms.forEach(alarm => { delete alarm.days; });
 if (!alarms.length) { alarms = [{ ...makeAlarm(), time: '07:00', label: '早安' }]; save(); }
 sortAlarms(); save(); render(); migrateLegacySound().then(render); updateClock(); setInterval(updateClock, 1000);

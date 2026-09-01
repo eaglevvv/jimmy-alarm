@@ -15,14 +15,16 @@
         </div>
         <div class="now" aria-live="polite">
           <time id="clock">--:--:--</time>
-          <span id="date">載入中</span>
         </div>
       </header>
 
       <section class="controls" aria-label="新增鬧鐘">
         <button class="primary" id="add-alarm" type="button">＋ 新增鬧鐘</button>
         <button class="quiet" id="enable-sound" type="button">啟用鈴聲</button>
-        <span class="count" id="alarm-count">0 個已啟用</span>
+        <div class="alarm-status">
+          <span id="date">載入中</span>
+          <span class="count" id="alarm-count">0 個已啟用</span>
+        </div>
       </section>
 
       <section class="sound-settings" aria-label="鈴聲設定">
@@ -78,7 +80,15 @@
         <p class="eyebrow">TIME</p>
         <h2 id="time-dialog-title">設定鬧鐘時間</h2>
         <div class="time-selects">
-          <select id="picker-hour" aria-label="小時"></select><span>:</span><select id="picker-minute" aria-label="分鐘"></select>
+          <div class="time-select-control">
+            <button class="time-select-trigger" id="picker-hour" type="button" aria-haspopup="listbox" aria-expanded="false">00</button>
+            <div class="time-option-menu" id="picker-hour-menu" role="listbox" aria-label="小時" hidden></div>
+          </div>
+          <span>:</span>
+          <div class="time-select-control">
+            <button class="time-select-trigger" id="picker-minute" type="button" aria-haspopup="listbox" aria-expanded="false">00</button>
+            <div class="time-option-menu" id="picker-minute-menu" role="listbox" aria-label="分鐘" hidden></div>
+          </div>
         </div>
         <div class="dialog-actions">
           <button class="quiet" id="cancel-time" value="cancel" type="submit">取消</button>

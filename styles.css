@@ -1,9 +1,9 @@
-:root { color-scheme: dark; font-family: Inter, "Noto Sans TC", system-ui, sans-serif; background: #0b0d12; color: #eef0f6; }
+:root { color-scheme: dark; font-family: Inter, "Noto Sans TC", system-ui, sans-serif; background: #000; color: #eef0f6; }
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradient(circle at 78% 5%, #1d2541 0, transparent 27rem), radial-gradient(circle at 8% 92%, #182331 0, transparent 27rem), #0b0d12; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: #000; }
 button, input { font: inherit; }
 .app-shell { width: min(100% - 32px, 920px); margin: 0 auto; padding: calc(var(--fixed-panel-height, 314px) + 18px) 0 80px; }
-.fixed-panel { position: fixed; top: 0; left: 50%; z-index: 20; width: min(100% - 32px, 920px); padding: 20px 0 8px; background: radial-gradient(circle at 78vw 5vh, #1d2541 0, transparent 27rem), radial-gradient(circle at 8vw 92vh, #182331 0, transparent 27rem), #0b0d12; transform: translateX(-50%); }.hero { display: flex; align-items: center; justify-content: center; gap: clamp(20px, 5vw, 54px); margin-bottom: 18px; text-align: left; }
+.fixed-panel { position: fixed; top: 0; left: 50%; z-index: 20; width: min(100% - 32px, 920px); padding: 20px 0 8px; background: #000; transform: translateX(-50%); }.hero { display: flex; align-items: center; justify-content: center; gap: clamp(20px, 5vw, 54px); margin-bottom: 18px; text-align: left; }
 .eyebrow { margin: 0 0 8px; color: #8a94b6; font-size: .72rem; font-weight: 700; letter-spacing: .16em; }
 h1 { margin: 0; font-size: clamp(2.5rem, 6vw, 4.6rem); letter-spacing: -.065em; line-height: .95; }
 .now { min-width: 150px; text-align: left; }

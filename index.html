@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b0d12" />
-    <title>夜幕鬧鐘</title>
+    <title>吉米鬧鐘</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -12,8 +12,7 @@
       <header class="hero">
         <div>
           <p class="eyebrow">MULTI ALARM</p>
-          <h1>夜幕鬧鐘</h1>
-          <p class="subtitle">一次管理所有重要時刻。</p>
+          <h1>吉米鬧鐘</h1>
         </div>
         <div class="now" aria-live="polite">
           <time id="clock">--:--:--</time>
@@ -29,14 +28,15 @@
 
       <section class="sound-settings" aria-label="鈴聲設定">
         <div>
-          <p class="setting-title">鈴聲</p>
-          <p class="setting-description" id="sound-name">目前使用內建鈴聲</p>
+          <p class="setting-title">鈴聲庫</p>
+          <p class="setting-description" id="sound-name">可儲存最多 5 組自訂鈴聲</p>
         </div>
         <div class="sound-actions">
           <label class="quiet file-button" for="sound-file">匯入音訊</label>
           <input id="sound-file" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" hidden />
+          <select class="sound-select library-select" id="sound-library" aria-label="選擇要管理的鈴聲"></select>
           <button class="quiet" id="preview-sound" type="button">試聽</button>
-          <button class="text-button" id="remove-sound" type="button" hidden>移除</button>
+          <button class="text-button" id="remove-sound" type="button">移除</button>
         </div>
       </section>
 
@@ -59,6 +59,7 @@
               <span aria-hidden="true">◖))</span>
               <input class="alarm-volume" type="range" min="0" max="100" value="80" aria-label="鬧鐘音量" />
             </label>
+            <select class="sound-select alarm-sound" aria-label="選擇鬧鐘鈴聲"></select>
             <button class="icon-button delete" type="button" title="刪除鬧鐘">×</button>
           </div>
         </article>

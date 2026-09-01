@@ -3,11 +3,11 @@
 body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradient(circle at 78% 5%, #1d2541 0, transparent 27rem), radial-gradient(circle at 8% 92%, #182331 0, transparent 27rem), #0b0d12; }
 button, input { font: inherit; }
 .app-shell { width: min(100% - 32px, 920px); margin: 0 auto; padding: 64px 0 80px; }
-.hero { display: flex; flex-direction: column; align-items: center; gap: 22px; margin-bottom: 42px; text-align: center; }
+.hero { display: flex; align-items: center; justify-content: center; gap: clamp(20px, 5vw, 54px); margin-bottom: 42px; text-align: left; }
 .eyebrow { margin: 0 0 8px; color: #8a94b6; font-size: .72rem; font-weight: 700; letter-spacing: .16em; }
 h1 { margin: 0; font-size: clamp(2.5rem, 6vw, 4.6rem); letter-spacing: -.065em; line-height: .95; }
-.now { min-width: 168px; text-align: center; }
-.now time { display: block; font-size: clamp(2.5rem, 6vw, 4.35rem); font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: -.06em; }
+.now { min-width: 150px; text-align: left; }
+.now time { display: block; font-size: clamp(2rem, 5vw, 4.35rem); font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: -.06em; }
 .now span { color: #8a94b6; font-size: .84rem; }
 .controls { display: flex; align-items: center; gap: 12px; border-block: 1px solid #272d3e; padding: 18px 0; margin-bottom: 16px; }
 button { border: 0; cursor: pointer; transition: transform .15s ease, background .15s ease; }

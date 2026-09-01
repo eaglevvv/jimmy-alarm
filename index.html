@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b0d12" />
+    <title>夜幕鬧鐘</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">MULTI ALARM</p>
+          <h1>夜幕鬧鐘</h1>
+          <p class="subtitle">一次管理所有重要時刻。</p>
+        </div>
+        <div class="now" aria-live="polite">
+          <time id="clock">--:--:--</time>
+          <span id="date">載入中</span>
+        </div>
+      </header>
+
+      <section class="controls" aria-label="新增鬧鐘">
+        <button class="primary" id="add-alarm" type="button">＋ 新增鬧鐘</button>
+        <button class="quiet" id="enable-sound" type="button">啟用鈴聲</button>
+        <span class="count" id="alarm-count">0 個已啟用</span>
+      </section>
+
+      <section class="sound-settings" aria-label="鈴聲設定">
+        <div>
+          <p class="setting-title">鈴聲</p>
+          <p class="setting-description" id="sound-name">目前使用內建鈴聲</p>
+        </div>
+        <div class="sound-actions">
+          <label class="quiet file-button" for="sound-file">匯入音訊</label>
+          <input id="sound-file" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" hidden />
+          <button class="quiet" id="preview-sound" type="button">試聽</button>
+          <button class="text-button" id="remove-sound" type="button" hidden>移除</button>
+        </div>
+      </section>
+
+      <section class="alarm-list" id="alarm-list" aria-label="鬧鐘清單"></section>
+      <template id="alarm-template">
+        <article class="alarm-card">
+          <label class="switch-label" title="啟用或關閉">
+            <input class="enabled" type="checkbox" checked />
+            <span class="switch"></span>
+          </label>
+          <div class="time-wrap">
+            <input class="alarm-time" type="time" value="07:00" aria-label="鬧鐘時間" />
+            <input class="alarm-label" type="text" maxlength="30" placeholder="鬧鐘名稱（選填）" aria-label="鬧鐘名稱" />
+          </div>
+          <div class="days" aria-label="重複日期">
+            <label><input type="checkbox" value="1" />一</label><label><input type="checkbox" value="2" />二</label><label><input type="checkbox" value="3" />三</label><label><input type="checkbox" value="4" />四</label><label><input type="checkbox" value="5" />五</label><label><input type="checkbox" value="6" />六</label><label><input type="checkbox" value="0" />日</label>
+          </div>
+          <div class="card-actions">
+            <label class="volume-control" title="調整鬧鐘音量">
+              <span aria-hidden="true">◖))</span>
+              <input class="alarm-volume" type="range" min="0" max="100" value="80" aria-label="鬧鐘音量" />
+            </label>
+            <button class="icon-button delete" type="button" title="刪除鬧鐘">×</button>
+          </div>
+        </article>
+      </template>
+      <p class="empty-state" id="empty-state">尚未設定鬧鐘。按下「新增鬧鐘」開始吧。</p>
+    </main>
+
+    <dialog id="ring-dialog">
+      <div class="ringing-orb">◖))</div>
+      <p class="eyebrow">ALARM</p>
+      <h2 id="ring-title">鬧鐘時間到了</h2>
+      <p id="ring-time"></p>
+      <button class="primary stop" id="stop-alarm" type="button">停止鈴聲</button>
+    </dialog>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
+

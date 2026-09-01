@@ -5,7 +5,7 @@ let audioContext, alarmOscillator, alarmTimer, lastMinute = '', playingAudio, pl
 const save = () => localStorage.setItem('night-alarm-list', JSON.stringify(alarms));
 const saveLibrary = () => localStorage.setItem('night-alarm-sound-library', JSON.stringify(soundLibrary));
 const sortAlarms = () => alarms.sort((a, b) => a.time.localeCompare(b.time));
-const makeAlarm = () => ({ id: crypto.randomUUID(), time: '07:00', label: '', enabled: true, volume: 80, soundId: 'builtin' });
+const makeAlarm = () => ({ id: crypto.randomUUID(), time: '00:00', label: '', enabled: true, volume: 80, soundId: 'builtin' });
 const escapeHtml = (value) => { const node = document.createElement('span'); node.textContent = value; return node.innerHTML; };
 const timeOptions = (limit) => Array.from({ length: limit }, (_, value) => { const time = String(value).padStart(2, '0'); return `<button type="button" role="option" data-time="${time}">${time}</button>`; }).join('');
 function formatDate(d) { return new Intl.DateTimeFormat('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }).format(d); }
@@ -72,5 +72,5 @@ hourMenu.addEventListener('click', event => { const option = event.target.closes
 minuteMenu.addEventListener('click', event => { const option = event.target.closest('[data-time]'); if (!option) return; selectedMinute = option.dataset.time; minuteSelect.textContent = selectedMinute; closeTimeMenus(); });
 timeDialog.addEventListener('close', () => { closeTimeMenus(); if (timeDialog.returnValue === 'default' && editingAlarm) { editingAlarm.time = `${selectedHour}:${selectedMinute}`; sortAlarms(); save(); render(); } editingAlarm = undefined; });
 alarms.forEach(alarm => { delete alarm.days; });
-if (!alarms.length) { alarms = [{ ...makeAlarm(), time: '07:00', label: '早安' }]; save(); }
+if (!alarms.length) { alarms = [{ ...makeAlarm(), time: '00:00', label: '早安' }]; save(); }
 sortAlarms(); save(); render(); migrateLegacySound().then(render); updateClock(); setInterval(updateClock, 1000);

@@ -15,6 +15,17 @@ function soundDatabase() { return new Promise((resolve, reject) => { const reque
 async function saveSound(id, file) { const db = await soundDatabase(); await new Promise((resolve, reject) => { const tx = db.transaction('sounds', 'readwrite'); tx.objectStore('sounds').put(file, id); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); }); }
 async function getSound(id) { const db = await soundDatabase(); return new Promise((resolve, reject) => { const request = db.transaction('sounds').objectStore('sounds').get(id); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); }); }
 async function deleteSound(id) { const db = await soundDatabase(); await new Promise((resolve, reject) => { const tx = db.transaction('sounds', 'readwrite'); tx.objectStore('sounds').delete(id); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); }); }
+async function migrateLegacySound() {
+  try {
+    const legacySound = await getSound('custom');
+    if (!legacySound || soundLibrary.length >= 5) return;
+    const sound = { id: crypto.randomUUID(), name: localStorage.getItem('night-alarm-sound-name') || '已匯入鈴聲' };
+    await saveSound(sound.id, legacySound);
+    await deleteSound('custom');
+    soundLibrary.push(sound);
+    saveLibrary();
+  } catch { /* The browser may have no previous sound to migrate. */ }
+}
 function soundOptions(selected = 'builtin') { return ['<option value="builtin">內建鈴聲</option>', ...soundLibrary.map(sound => `<option value="${sound.id}" ${sound.id === selected ? 'selected' : ''}>${escapeHtml(sound.name)}</option>`)].join(''); }
 function updateSoundUi() { librarySelect.innerHTML = soundOptions(librarySelect.value || 'builtin'); document.querySelector('#sound-name').textContent = soundLibrary.length ? `已儲存 ${soundLibrary.length} / 5 組鈴聲` : '可儲存最多 5 組自訂鈴聲'; document.querySelector('#remove-sound').hidden = librarySelect.value === 'builtin'; }
 
@@ -53,4 +64,4 @@ document.querySelector('#preview-sound').addEventListener('click', () => { playS
 document.querySelector('#remove-sound').addEventListener('click', async () => { const id = librarySelect.value; if (id === 'builtin') return; try { await deleteSound(id); soundLibrary = soundLibrary.filter(sound => sound.id !== id); alarms.forEach(alarm => { if (alarm.soundId === id) alarm.soundId = 'builtin'; }); saveLibrary(); save(); librarySelect.value = 'builtin'; render(); showToast('已移除鈴聲，使用它的鬧鐘已改回內建鈴聲'); } catch { showToast('移除鈴聲時發生問題'); } });
 document.querySelector('#stop-alarm').addEventListener('click', stopSound); dialog.addEventListener('close', stopSound);
 if (!alarms.length) { alarms = [{ ...makeAlarm(), time: '07:00', label: '早安', days: [1, 2, 3, 4, 5] }]; save(); }
-sortAlarms(); save(); render(); updateClock(); setInterval(updateClock, 1000);
+sortAlarms(); save(); render(); migrateLegacySound().then(render); updateClock(); setInterval(updateClock, 1000);

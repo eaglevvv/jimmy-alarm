@@ -43,7 +43,7 @@ function render() {
   empty.hidden = alarms.length > 0; count.textContent = `${alarms.filter(x => x.enabled).length} 個已啟用`; updateSoundUi();
 }
 
-async function unlockAudio() { try { audioContext ??= new AudioContext(); await audioContext.resume(); showToast('鈴聲已啟用'); } catch { showToast('瀏覽器無法啟用鈴聲'); } }
+async function unlockAudio() { try { audioContext ??= new AudioContext(); await audioContext.resume(); } catch { showToast('瀏覽器無法播放鈴聲'); } }
 async function playSound(volume = 80, soundId = 'builtin') {
   const level = Math.max(0, Math.min(100, volume)) / 100; stopPlayback();
   if (soundId !== 'builtin') try { const file = await getSound(soundId); if (file) { playingAudioUrl = URL.createObjectURL(file); playingAudio = new Audio(playingAudioUrl); playingAudio.loop = true; playingAudio.volume = level; await playingAudio.play(); return; } } catch { /* use the built-in tone */ }
@@ -57,7 +57,6 @@ async function ring(alarm) { document.querySelector('#ring-title').textContent =
 function checkAlarms(now) { const minute = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}:${now.getMinutes()}`; if (minute === lastMinute) return; lastMinute = minute; const time = now.toTimeString().slice(0, 5); alarms.filter(a => a.enabled && a.time === time).forEach(ring); }
 
 document.querySelector('#add-alarm').addEventListener('click', () => { alarms.push(makeAlarm()); sortAlarms(); save(); render(); document.querySelector('.alarm-card:last-child .time-picker-button').focus(); });
-document.querySelector('#enable-sound').addEventListener('click', unlockAudio);
 document.querySelector('#sound-file').addEventListener('change', async event => { const file = event.target.files[0]; if (!file) return; if (!file.type.startsWith('audio/')) { showToast('請選擇音訊檔案'); return; } if (soundLibrary.length >= 5) { showToast('鈴聲庫最多可儲存 5 組，請先移除一組'); event.target.value = ''; return; } try { const sound = { id: crypto.randomUUID(), name: file.name }; await saveSound(sound.id, file); soundLibrary.push(sound); saveLibrary(); render(); librarySelect.value = sound.id; updateSoundUi(); showToast('已新增至鈴聲庫'); } catch { showToast('鈴聲儲存失敗，請選擇較小的檔案'); } finally { event.target.value = ''; } });
 librarySelect.addEventListener('change', updateSoundUi);
 document.querySelector('#preview-sound').addEventListener('click', () => { playSound(80, librarySelect.value); setTimeout(stopSound, 6000); });

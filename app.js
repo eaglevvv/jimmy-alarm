@@ -1,12 +1,13 @@
-const list = document.querySelector('#alarm-list'), template = document.querySelector('#alarm-template'), empty = document.querySelector('#empty-state'), count = document.querySelector('#alarm-count'), dialog = document.querySelector('#ring-dialog'), librarySelect = document.querySelector('#sound-library');
+const list = document.querySelector('#alarm-list'), template = document.querySelector('#alarm-template'), empty = document.querySelector('#empty-state'), count = document.querySelector('#alarm-count'), dialog = document.querySelector('#ring-dialog'), timeDialog = document.querySelector('#time-dialog'), hourSelect = document.querySelector('#picker-hour'), minuteSelect = document.querySelector('#picker-minute'), librarySelect = document.querySelector('#sound-library');
 let alarms = JSON.parse(localStorage.getItem('night-alarm-list') || '[]'), soundLibrary = JSON.parse(localStorage.getItem('night-alarm-sound-library') || '[]');
-let audioContext, alarmOscillator, alarmTimer, lastMinute = '', playingAudio, playingAudioUrl;
+let audioContext, alarmOscillator, alarmTimer, lastMinute = '', playingAudio, playingAudioUrl, editingAlarm;
 
 const save = () => localStorage.setItem('night-alarm-list', JSON.stringify(alarms));
 const saveLibrary = () => localStorage.setItem('night-alarm-sound-library', JSON.stringify(soundLibrary));
 const sortAlarms = () => alarms.sort((a, b) => a.time.localeCompare(b.time));
-const makeAlarm = () => ({ id: crypto.randomUUID(), time: '07:00', label: '', days: [], enabled: true, volume: 80, soundId: 'builtin' });
+const makeAlarm = () => ({ id: crypto.randomUUID(), time: '07:00', label: '', enabled: true, volume: 80, soundId: 'builtin' });
 const escapeHtml = (value) => { const node = document.createElement('span'); node.textContent = value; return node.innerHTML; };
+const timeOptions = (limit) => Array.from({ length: limit }, (_, value) => `<option value="${String(value).padStart(2, '0')}">${String(value).padStart(2, '0')}</option>`).join('');
 function formatDate(d) { return new Intl.DateTimeFormat('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }).format(d); }
 function updateClock() { const now = new Date(); document.querySelector('#clock').textContent = now.toLocaleTimeString('zh-TW', { hour12: false }); document.querySelector('#date').textContent = formatDate(now); checkAlarms(now); }
 function showToast(message) { const toast = document.querySelector('#toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove('show'), 2400); }
@@ -32,11 +33,10 @@ function updateSoundUi() { librarySelect.innerHTML = soundOptions(librarySelect.
 function render() {
   sortAlarms(); list.innerHTML = '';
   alarms.forEach((alarm) => {
-    const node = template.content.cloneNode(true), card = node.querySelector('.alarm-card'), enabled = node.querySelector('.enabled'), time = node.querySelector('.alarm-time'), label = node.querySelector('.alarm-label'), volume = node.querySelector('.alarm-volume'), sound = node.querySelector('.alarm-sound');
-    enabled.checked = alarm.enabled; time.value = alarm.time; label.value = alarm.label; volume.value = alarm.volume ?? 80; sound.innerHTML = soundOptions(alarm.soundId || 'builtin');
-    node.querySelectorAll('.days input').forEach(input => { input.checked = alarm.days.includes(Number(input.value)); input.addEventListener('change', () => { alarm.days = [...card.querySelectorAll('.days input:checked')].map(x => Number(x.value)); save(); }); });
+    const node = template.content.cloneNode(true), card = node.querySelector('.alarm-card'), enabled = node.querySelector('.enabled'), timeButton = node.querySelector('.time-picker-button'), timeDisplay = node.querySelector('.alarm-time-display'), label = node.querySelector('.alarm-label'), volume = node.querySelector('.alarm-volume'), sound = node.querySelector('.alarm-sound');
+    enabled.checked = alarm.enabled; timeDisplay.value = alarm.time; label.value = alarm.label; volume.value = alarm.volume ?? 80; sound.innerHTML = soundOptions(alarm.soundId || 'builtin');
     enabled.addEventListener('change', () => { alarm.enabled = enabled.checked; save(); render(); });
-    time.addEventListener('change', () => { alarm.time = time.value; sortAlarms(); save(); render(); });
+    timeButton.addEventListener('click', () => { editingAlarm = alarm; const [hour, minute] = alarm.time.split(':'); hourSelect.value = hour; minuteSelect.value = minute; timeDialog.showModal(); });
     label.addEventListener('input', () => { alarm.label = label.value; save(); }); volume.addEventListener('input', () => { alarm.volume = Number(volume.value); save(); }); sound.addEventListener('change', () => { alarm.soundId = sound.value; save(); });
     node.querySelector('.delete').addEventListener('click', () => { alarms = alarms.filter(x => x.id !== alarm.id); save(); render(); }); list.append(node);
   });
@@ -54,14 +54,17 @@ async function playSound(volume = 80, soundId = 'builtin') {
 function stopPlayback() { clearInterval(alarmTimer); try { alarmOscillator?.stop(); } catch {} playingAudio?.pause(); if (playingAudioUrl) URL.revokeObjectURL(playingAudioUrl); playingAudio = undefined; playingAudioUrl = undefined; }
 function stopSound() { stopPlayback(); if (dialog.open) dialog.close(); }
 async function ring(alarm) { document.querySelector('#ring-title').textContent = alarm.label || '鬧鐘時間到了'; document.querySelector('#ring-time').textContent = alarm.time; dialog.showModal(); await playSound(alarm.volume ?? 80, alarm.soundId || 'builtin'); }
-function checkAlarms(now) { const minute = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}:${now.getMinutes()}`; if (minute === lastMinute) return; lastMinute = minute; const day = now.getDay(), time = now.toTimeString().slice(0, 5); alarms.filter(a => a.enabled && a.time === time && (!a.days.length || a.days.includes(day))).forEach(ring); }
+function checkAlarms(now) { const minute = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}:${now.getMinutes()}`; if (minute === lastMinute) return; lastMinute = minute; const time = now.toTimeString().slice(0, 5); alarms.filter(a => a.enabled && a.time === time).forEach(ring); }
 
-document.querySelector('#add-alarm').addEventListener('click', () => { alarms.push(makeAlarm()); sortAlarms(); save(); render(); document.querySelector('.alarm-card:last-child .alarm-time').focus(); });
+document.querySelector('#add-alarm').addEventListener('click', () => { alarms.push(makeAlarm()); sortAlarms(); save(); render(); document.querySelector('.alarm-card:last-child .time-picker-button').focus(); });
 document.querySelector('#enable-sound').addEventListener('click', unlockAudio);
 document.querySelector('#sound-file').addEventListener('change', async event => { const file = event.target.files[0]; if (!file) return; if (!file.type.startsWith('audio/')) { showToast('請選擇音訊檔案'); return; } if (soundLibrary.length >= 5) { showToast('鈴聲庫最多可儲存 5 組，請先移除一組'); event.target.value = ''; return; } try { const sound = { id: crypto.randomUUID(), name: file.name }; await saveSound(sound.id, file); soundLibrary.push(sound); saveLibrary(); render(); librarySelect.value = sound.id; updateSoundUi(); showToast('已新增至鈴聲庫'); } catch { showToast('鈴聲儲存失敗，請選擇較小的檔案'); } finally { event.target.value = ''; } });
 librarySelect.addEventListener('change', updateSoundUi);
 document.querySelector('#preview-sound').addEventListener('click', () => { playSound(80, librarySelect.value); setTimeout(stopSound, 6000); });
 document.querySelector('#remove-sound').addEventListener('click', async () => { const id = librarySelect.value; if (id === 'builtin') return; try { await deleteSound(id); soundLibrary = soundLibrary.filter(sound => sound.id !== id); alarms.forEach(alarm => { if (alarm.soundId === id) alarm.soundId = 'builtin'; }); saveLibrary(); save(); librarySelect.value = 'builtin'; render(); showToast('已移除鈴聲，使用它的鬧鐘已改回內建鈴聲'); } catch { showToast('移除鈴聲時發生問題'); } });
 document.querySelector('#stop-alarm').addEventListener('click', stopSound); dialog.addEventListener('close', stopSound);
-if (!alarms.length) { alarms = [{ ...makeAlarm(), time: '07:00', label: '早安', days: [1, 2, 3, 4, 5] }]; save(); }
+hourSelect.innerHTML = timeOptions(24); minuteSelect.innerHTML = timeOptions(60);
+timeDialog.addEventListener('close', () => { if (timeDialog.returnValue === 'default' && editingAlarm) { editingAlarm.time = `${hourSelect.value}:${minuteSelect.value}`; sortAlarms(); save(); render(); } editingAlarm = undefined; });
+alarms.forEach(alarm => { delete alarm.days; });
+if (!alarms.length) { alarms = [{ ...makeAlarm(), time: '07:00', label: '早安' }]; save(); }
 sortAlarms(); save(); render(); migrateLegacySound().then(render); updateClock(); setInterval(updateClock, 1000);
